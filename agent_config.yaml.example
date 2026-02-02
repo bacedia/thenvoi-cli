@@ -1,0 +1,14 @@
+# Example thenvoi-cli configuration file
+# Copy this file to agent_config.yaml and fill in your credentials
+
+# You can configure multiple agents
+my-agent:
+  # Agent UUID from the Thenvoi platform
+  agent_id: "12345678-1234-1234-1234-123456789012"
+  # API key (generated from platform, shown only once!)
+  api_key: "sk-your-api-key-here"
+
+# Another agent example
+production-agent:
+  agent_id: "87654321-4321-4321-4321-210987654321"
+  api_key: "sk-another-api-key"

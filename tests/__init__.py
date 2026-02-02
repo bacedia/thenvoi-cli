@@ -1,0 +1,1 @@
+"""thenvoi-cli test suite."""

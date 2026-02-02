@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build dependencies
+        run: pip install build
+
+      - name: Build package
+        run: python -m build
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  build-binary:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+          pip install pyinstaller
+
+      - name: Build binary
+        run: |
+          pyinstaller \
+            --onefile \
+            --name thenvoi-cli \
+            --hidden-import thenvoi_cli.commands.config \
+            --hidden-import thenvoi_cli.commands.run \
+            --hidden-import thenvoi_cli.commands.status \
+            --hidden-import thenvoi_cli.commands.rooms \
+            --hidden-import thenvoi_cli.commands.participants \
+            --hidden-import thenvoi_cli.commands.peers \
+            --hidden-import thenvoi_cli.commands.adapters \
+            --hidden-import thenvoi_cli.commands.test \
+            src/thenvoi_cli/cli.py
+
+      - name: Rename binary
+        run: mv dist/thenvoi-cli dist/thenvoi-cli-linux-${{ matrix.arch }}
+
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-linux-${{ matrix.arch }}
+          path: dist/thenvoi-cli-linux-${{ matrix.arch }}
+
+  publish-pypi:
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/thenvoi-cli
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+
+  release:
+    needs: [build, build-binary, publish-pypi]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Prepare release files
+        run: |
+          mkdir release
+          cp artifacts/dist/* release/
+          cp artifacts/binary-*/* release/
+          cp install.sh release/
+          cd release && sha256sum * > checksums.sha256
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*
+          generate_release_notes: true
+          draft: false

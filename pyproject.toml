@@ -1,0 +1,135 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "thenvoi-cli"
+version = "0.1.0"
+description = "CLI for the Thenvoi AI agent platform"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.11"
+authors = [
+    { name = "Bacedia", email = "dev@bacedia.com" },
+]
+keywords = ["ai", "agents", "cli", "thenvoi", "llm", "multi-agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "typer[all]>=0.9.0",
+    "thenvoi-sdk>=0.1.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0",
+    "httpx>=0.27.0",
+    "packaging>=23.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.10.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.8.0",
+    "mypy>=1.0.0",
+    "types-PyYAML>=6.0.0",
+    "pyinstaller>=6.0.0",
+]
+langgraph = [
+    "langgraph>=1.0.0",
+    "langchain-core>=0.3.0",
+    "langchain-openai>=0.3.0",
+]
+anthropic = ["anthropic>=0.75.0"]
+pydantic-ai = ["pydantic-ai-slim>=1.0.0", "openai>=1.0.0"]
+claude-sdk = ["claude-agent-sdk>=0.1.0"]
+crewai = ["crewai>=0.80.0", "openai>=1.0.0"]
+parlant = ["parlant>=3.0.0", "openai>=1.0.0"]
+a2a = ["a2a-sdk>=0.3.22"]
+a2a-gateway = ["a2a-sdk>=0.3.22", "starlette>=0.27.0", "uvicorn>=0.23.0"]
+all = [
+    "thenvoi-cli[langgraph]",
+    "thenvoi-cli[anthropic]",
+    "thenvoi-cli[pydantic-ai]",
+    "thenvoi-cli[claude-sdk]",
+    "thenvoi-cli[crewai]",
+    "thenvoi-cli[parlant]",
+    "thenvoi-cli[a2a]",
+    "thenvoi-cli[a2a-gateway]",
+]
+
+[project.scripts]
+thenvoi-cli = "thenvoi_cli.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/bacedia/thenvoi-cli"
+Documentation = "https://github.com/bacedia/thenvoi-cli#readme"
+Repository = "https://github.com/bacedia/thenvoi-cli"
+Issues = "https://github.com/bacedia/thenvoi-cli/issues"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/thenvoi_cli"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "SIM"]
+ignore = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["thenvoi_cli"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+plugins = []
+
+[[tool.mypy.overrides]]
+module = [
+    "thenvoi.*",
+    "typer.*",
+    "rich.*",
+    "yaml.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+
+[tool.coverage.run]
+source = ["src/thenvoi_cli"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+]
