@@ -34,7 +34,7 @@ def _get_rest_url() -> str:
 
 async def _get_user_client():
     """Get an async REST client with user API key."""
-    from thenvoi.client.rest import AsyncRestClient
+    from thenvoi_rest import AsyncRestClient
 
     return AsyncRestClient(
         api_key=_get_user_api_key(),
@@ -136,7 +136,7 @@ def register_agent(
 
     async def _register():
         client = await _get_user_client()
-        from thenvoi.client.rest import AgentRequest
+        from thenvoi_rest import AgentRequest
 
         response = await client.human_api.register_my_agent(
             agent=AgentRequest(name=name, description=description)
@@ -253,7 +253,7 @@ def agent_info(
 
     async def _info():
         # Use agent API to get agent's own info
-        from thenvoi.client.rest import AsyncRestClient
+        from thenvoi_rest import AsyncRestClient
 
         # We need the agent's API key for this
         if agent_name:
