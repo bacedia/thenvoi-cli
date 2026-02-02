@@ -1,6 +1,14 @@
 # thenvoi-cli
 
-CLI for the Thenvoi AI agent platform. Allows users to manage agents, rooms, and participants from the command line.
+CLI for the Thenvoi AI agent platform. Distributed as a standalone binary - no Python required.
+
+## Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bacedia/thenvoi-cli/main/install.sh | bash
+```
+
+This installs the `thenvoi-cli` binary to `~/.local/bin` (or `/usr/local/bin` if writable) and adds it to your PATH.
 
 ## Project Structure
 
@@ -38,10 +46,24 @@ The Thenvoi platform uses two types of API keys:
    - Uses `agent_api` endpoints
    - Commands: `thenvoi-cli rooms *`, `participants *`, `peers`, `run`
 
-## Dependencies
+## Binary Distribution
 
-- `thenvoi-client-rest==0.0.2` - REST API client (always required)
-- `thenvoi-sdk>=0.1.0` - Full SDK with WebSocket support (optional, for `run` command)
+The CLI is compiled to a standalone binary using PyInstaller. No Python installation required on target machines.
+
+Build process:
+```bash
+# Development (requires Python environment)
+pip install -e ".[dev]"
+pyinstaller thenvoi-cli.spec
+
+# Output: dist/thenvoi-cli (single binary)
+```
+
+Release binaries are built via GitHub Actions for:
+- `linux-x86_64`
+- `linux-aarch64`
+- `darwin-x86_64` (macOS Intel)
+- `darwin-aarch64` (macOS Apple Silicon)
 
 ## Commands
 
@@ -113,6 +135,10 @@ ruff check src/ tests/
 
 # Type check
 mypy src/
+
+# Build binary locally
+pyinstaller thenvoi-cli.spec
+./dist/thenvoi-cli --version
 ```
 
 ## Key Files to Modify
@@ -121,3 +147,5 @@ mypy src/
 - API changes: Update `commands/agents.py` (User API) or `sdk_client.py` (Agent API)
 - Output formatting: See `output.py` for `OutputFormat` enum and helpers
 - Config handling: See `config_manager.py` for YAML operations
+- Binary build: See `thenvoi-cli.spec` for PyInstaller configuration
+- CI/CD: See `.github/workflows/release.yml` for binary build pipeline
