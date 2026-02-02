@@ -82,11 +82,12 @@ class SDKClient:
         """Check if the client is connected."""
         return self._link is not None
 
-    def get_tools(self, room_id: str | None = None) -> AgentTools:
+    def get_tools(self, room_id: str = "") -> AgentTools:
         """Get AgentTools instance bound to a room.
 
         Args:
-            room_id: Optional room ID to bind tools to.
+            room_id: Room ID to bind tools to. Required for most operations
+                except create_chatroom and lookup_peers.
 
         Returns:
             AgentTools instance.
@@ -99,10 +100,10 @@ class SDKClient:
 
         from thenvoi.runtime.tools import AgentTools
 
+        # AgentTools needs the REST client from the link, not the link itself
         return AgentTools(
-            link=self._link,
             room_id=room_id,
-            agent_id=self.agent_id,
+            rest=self._link.rest,
         )
 
     async def get_rooms(self) -> list[dict[str, Any]]:
@@ -114,7 +115,18 @@ class SDKClient:
         if not self._link:
             raise ConnectionError("Not connected to Thenvoi platform")
 
-        return await self._link.rest.get_rooms()  # type: ignore[no-any-return]
+        response = await self._link.rest.agent_api.list_agent_chats()
+        if not response.data:
+            return []
+
+        return [
+            {
+                "id": chat.id,
+                "name": getattr(chat, "name", ""),
+                "participant_count": getattr(chat, "participant_count", 0),
+            }
+            for chat in response.data
+        ]
 
     async def health_check(self) -> dict[str, Any]:
         """Perform a health check against the platform.
