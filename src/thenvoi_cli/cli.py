@@ -104,6 +104,7 @@ def main(
 
 # Import and register command groups
 from thenvoi_cli.commands import adapters as adapters_cmd
+from thenvoi_cli.commands import agents as agents_cmd
 from thenvoi_cli.commands import config as config_cmd
 from thenvoi_cli.commands import participants as participants_cmd
 from thenvoi_cli.commands import peers as peers_cmd
@@ -112,6 +113,7 @@ from thenvoi_cli.commands import run as run_cmd
 from thenvoi_cli.commands import status as status_cmd
 from thenvoi_cli.commands import test as test_cmd
 
+app.add_typer(agents_cmd.app, name="agents")
 app.add_typer(config_cmd.app, name="config")
 app.add_typer(rooms_cmd.app, name="rooms")
 app.add_typer(participants_cmd.app, name="participants")
