@@ -26,14 +26,14 @@ pipx install thenvoi-cli
 ## Quick Start
 
 ```bash
-# 1. Configure your agent (get credentials from Thenvoi platform)
-thenvoi-cli config set my-agent \
-  --agent-id 12345678-1234-1234-1234-123456789012 \
-  --api-key sk-your-api-key
-
-# 2. Set platform URLs
+# 1. Set platform URLs and User API key
 export THENVOI_REST_URL=https://app.thenvoi.com/
 export THENVOI_WS_URL=wss://app.thenvoi.com/api/v1/socket/websocket
+export THENVOI_API_KEY_USER=sk-user-your-user-api-key
+
+# 2. Register a new agent on the platform
+thenvoi-cli agents register --name "My Bot" --description "A helpful assistant"
+# This returns an Agent API key and saves credentials to agent_config.yaml
 
 # 3. Set LLM API key (for your chosen adapter)
 export OPENAI_API_KEY=sk-your-openai-key
@@ -41,10 +41,35 @@ export OPENAI_API_KEY=sk-your-openai-key
 export ANTHROPIC_API_KEY=sk-ant-your-anthropic-key
 
 # 4. Run your agent
-thenvoi-cli run my-agent --adapter langgraph
+thenvoi-cli run my-bot --adapter langgraph
+```
+
+### Alternative: Manual Configuration
+
+If you already have agent credentials:
+
+```bash
+thenvoi-cli config set my-agent \
+  --agent-id 12345678-1234-1234-1234-123456789012 \
+  --api-key sk-agent-your-agent-api-key
 ```
 
 ## Commands
+
+### Agent Management (User API)
+
+Commands for managing agents on the platform. Requires `THENVOI_API_KEY_USER`.
+
+| Command | Description |
+|---------|-------------|
+| `thenvoi-cli agents list` | List all agents you own |
+| `thenvoi-cli agents register` | Register a new agent on the platform |
+| `thenvoi-cli agents delete <id>` | Delete an agent from the platform |
+| `thenvoi-cli agents info <id>` | Get information about an agent |
+
+### Agent Operations (Agent API)
+
+Commands for running agents and interacting with rooms. Uses per-agent API keys from config.
 
 | Command | Description |
 |---------|-------------|
@@ -116,17 +141,82 @@ another-agent:
 
 ### Environment Variables
 
+#### Platform Configuration
+
 | Variable | Description |
 |----------|-------------|
 | `THENVOI_REST_URL` | REST API URL (required) |
-| `THENVOI_WS_URL` | WebSocket URL (required) |
+| `THENVOI_WS_URL` | WebSocket URL (required for `run` command) |
+
+#### API Keys
+
+thenvoi-cli uses a two-tier API key system:
+
+| Variable | Description |
+|----------|-------------|
+| `THENVOI_API_KEY_USER` | **User API key** - for managing agents (register, list, delete). Get this from the Thenvoi platform dashboard. |
+| Per-agent `api_key` | **Agent API key** - stored in `agent_config.yaml`, used for runtime operations (rooms, messages, participants). Generated when you register an agent. |
+
+#### Overrides and Config
+
+| Variable | Description |
+|----------|-------------|
 | `THENVOI_AGENT_ID` | Override agent ID |
-| `THENVOI_API_KEY` | Override API key |
+| `THENVOI_API_KEY` | Override agent API key |
 | `THENVOI_CONFIG_PATH` | Custom config file path |
+
+#### LLM Provider Keys
+
+| Variable | Description |
+|----------|-------------|
 | `OPENAI_API_KEY` | For LangGraph, CrewAI, Parlant adapters |
 | `ANTHROPIC_API_KEY` | For Anthropic, Claude SDK adapters |
 
+## API Key System
+
+thenvoi-cli uses two types of API keys:
+
+### User API Key (`THENVOI_API_KEY_USER`)
+
+Your personal API key from the Thenvoi platform. Used for:
+- Registering new agents (`thenvoi-cli agents register`)
+- Listing agents you own (`thenvoi-cli agents list`)
+- Deleting agents (`thenvoi-cli agents delete`)
+
+### Agent API Key (per-agent)
+
+Each registered agent has its own API key. Used for:
+- Running the agent (`thenvoi-cli run`)
+- Room operations (`thenvoi-cli rooms`)
+- Participant management (`thenvoi-cli participants`)
+- Peer discovery (`thenvoi-cli peers`)
+
+When you register an agent with `thenvoi-cli agents register`, the Agent API key is:
+1. Displayed once (save it immediately!)
+2. Automatically saved to `agent_config.yaml`
+
 ## Examples
+
+### Register and Run a New Agent
+
+```bash
+# Set your User API key
+export THENVOI_API_KEY_USER=sk-user-your-key
+
+# Register an agent (saves credentials automatically)
+thenvoi-cli agents register --name "Assistant Bot" --description "Helps with tasks"
+
+# Output shows:
+# Registered agent 'Assistant Bot'
+# Agent ID: 12345678-1234-1234-1234-123456789012
+# API Key: sk-agent-xxx-xxx
+# Save this API key now - it won't be shown again!
+# Saved to config as 'assistant-bot'
+# Run with: thenvoi-cli run assistant-bot
+
+# Run it
+thenvoi-cli run assistant-bot --adapter langgraph
+```
 
 ### Run an Agent in the Background
 
@@ -192,6 +282,12 @@ thenvoi-cli config set my-agent --agent-id <uuid> --api-key <key>
 ```bash
 export THENVOI_REST_URL=https://app.thenvoi.com/
 export THENVOI_WS_URL=wss://app.thenvoi.com/api/v1/socket/websocket
+```
+
+### "THENVOI_API_KEY_USER not set"
+```bash
+# Get your User API key from the Thenvoi platform dashboard
+export THENVOI_API_KEY_USER=sk-user-your-key
 ```
 
 ### "Missing dependencies"
