@@ -1,11 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
 # PyInstaller spec file for thenvoi-cli
 
+from PyInstaller.utils.hooks import collect_data_files, collect_submodules
+
+# Collect all rich submodules including unicode data
+rich_hiddenimports = collect_submodules('rich')
+
 a = Analysis(
     ['src/thenvoi_cli/cli.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=collect_data_files('rich'),
     hiddenimports=[
         'thenvoi_cli',
         'thenvoi_cli.commands',
@@ -17,6 +22,7 @@ a = Analysis(
         'thenvoi_cli.commands.peers',
         'thenvoi_cli.commands.adapters',
         'thenvoi_cli.commands.test',
+        'thenvoi_cli.commands.agents',
         'thenvoi_cli.config_manager',
         'thenvoi_cli.adapter_registry',
         'thenvoi_cli.sdk_client',
@@ -32,9 +38,11 @@ a = Analysis(
         'rich.console',
         'rich.table',
         'rich.logging',
+        'rich._unicode_data',
         'yaml',
         'httpx',
-    ],
+        'thenvoi_rest',
+    ] + rich_hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
