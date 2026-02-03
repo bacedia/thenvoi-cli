@@ -129,7 +129,7 @@ def send_message(
             raise typer.Exit(1)
 
     # Parse mentions
-    mention_list = [m.strip() for m in mentions.split(",") if m.strip()]
+    mention_names = [m.strip() for m in mentions.split(",") if m.strip()]
 
     async def _send() -> dict:
         config = ConfigManager()
@@ -140,7 +140,17 @@ def send_message(
         try:
             tools = client.get_tools(room_id)
             if msg_type == "message":
-                return await tools.send_message(message, mentions=mention_list)
+                # Resolve mention names to IDs (workaround for SDK cache bug)
+                participants = await tools.get_participants()
+                name_to_id = {p["name"]: p["id"] for p in participants}
+                resolved_mentions = []
+                for name in mention_names:
+                    pid = name_to_id.get(name)
+                    if not pid:
+                        available = list(name_to_id.keys())
+                        raise ValueError(f"Unknown participant '{name}'. Available: {available}")
+                    resolved_mentions.append({"id": pid, "name": name})
+                return await tools.send_message(message, mentions=resolved_mentions)
             else:
                 return await tools.send_event(message, message_type=msg_type)
         finally:
