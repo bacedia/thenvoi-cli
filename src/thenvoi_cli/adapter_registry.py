@@ -99,6 +99,15 @@ ADAPTERS: dict[str, AdapterInfo] = {
         default_model=None,
         env_vars=[],
     ),
+    "passthrough": AdapterInfo(
+        name="passthrough",
+        class_name="PassthroughAdapter",
+        module="thenvoi_cli.adapters.passthrough",
+        description="Output messages to stdout without LLM processing",
+        required_deps=[],
+        default_model=None,
+        env_vars=[],
+    ),
 }
 
 

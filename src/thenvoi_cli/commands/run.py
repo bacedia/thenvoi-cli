@@ -310,6 +310,9 @@ def _create_adapter_instance(
     elif adapter_name == "a2a-gateway":
         return adapter_class()
 
+    elif adapter_name == "passthrough":
+        return adapter_class()
+
     else:
         # Default: try to instantiate with model
         try:
