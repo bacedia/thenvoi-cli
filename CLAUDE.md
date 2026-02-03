@@ -25,6 +25,9 @@ src/thenvoi_cli/
 │   ├── run.py          # Run agent with adapter (Agent API)
 │   ├── status.py       # Agent status/stop commands
 │   └── test.py         # Connectivity testing
+├── adapters/           # Built-in adapters (no external deps)
+│   └── passthrough.py  # Output messages to stdout as JSON
+├── adapter_registry.py # Adapter discovery and loading
 ├── config_manager.py   # YAML config file handling
 ├── sdk_client.py       # SDK wrapper for Agent API operations
 ├── output.py           # Output formatting (JSON/table/plain)
@@ -93,7 +96,11 @@ thenvoi-cli participants remove ROOM_ID PEER_ID --agent NAME
 thenvoi-cli peers --agent NAME       # Discover peer agents
 thenvoi-cli test NAME                # Test connectivity
 thenvoi-cli adapters list            # List framework adapters
-thenvoi-cli run NAME --adapter TYPE  # Run agent (needs full SDK)
+thenvoi-cli run NAME --adapter TYPE  # Run agent with adapter
+
+# Passthrough adapter (no LLM, outputs messages to stdout)
+thenvoi-cli run my-agent --adapter passthrough
+thenvoi-cli run my-agent --adapter passthrough | ./process-messages.py
 ```
 
 ## Environment Variables
@@ -144,8 +151,22 @@ pyinstaller thenvoi-cli.spec
 ## Key Files to Modify
 
 - Adding new commands: Create in `src/thenvoi_cli/commands/`, register in `cli.py`
+- Adding new adapters: Create in `src/thenvoi_cli/adapters/`, register in `adapter_registry.py`
 - API changes: Update `commands/agents.py` (User API) or `sdk_client.py` (Agent API)
 - Output formatting: See `output.py` for `OutputFormat` enum and helpers
 - Config handling: See `config_manager.py` for YAML operations
 - Binary build: See `thenvoi-cli.spec` for PyInstaller configuration
 - CI/CD: See `.github/workflows/release.yml` for binary build pipeline
+
+## Adapters
+
+Adapters connect agents to LLM backends or other processing. Most require optional dependencies, but some are built-in:
+
+| Adapter | Description | Dependencies |
+|---------|-------------|--------------|
+| `passthrough` | Output messages to stdout as JSON (no LLM) | None (built-in) |
+| `langgraph` | LangGraph ReAct agent | `thenvoi-sdk[langgraph]` |
+| `anthropic` | Anthropic Claude SDK | `thenvoi-sdk[anthropic]` |
+| `claude-sdk` | Claude Agent SDK | `thenvoi-sdk[claude-sdk]` |
+
+The `passthrough` adapter is useful for orchestration systems that need to listen for messages and trigger external processes without LLM processing.
