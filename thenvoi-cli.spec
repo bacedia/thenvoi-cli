@@ -25,6 +25,8 @@ a = Analysis(
         'thenvoi_cli.commands.agents',
         'thenvoi_cli.config_manager',
         'thenvoi_cli.adapter_registry',
+        'thenvoi_cli.adapters',
+        'thenvoi_cli.adapters.passthrough',
         'thenvoi_cli.sdk_client',
         'thenvoi_cli.process_manager',
         'thenvoi_cli.output',
